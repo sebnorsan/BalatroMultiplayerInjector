@@ -51,7 +51,8 @@ if missing_items:
     inject = messagebox.askyesno("Inject Balatro Multiplayer?", 
                                  "The following required items are missing:\n\n" +
                                  "\n".join(missing_items) +
-                                 "\n\nWould you like to inject Balatro Multiplayer?")
+                                 "\n\nWould you like to inject Balatro Multiplayer?"
+                                 "\nSelect ZIP File")
     if inject:
         # Select ZIP File
         zip_path = filedialog.askopenfilename(title="Select Balatro Multiplayer ZIP File",
