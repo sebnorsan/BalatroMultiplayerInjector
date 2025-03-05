@@ -5,7 +5,7 @@ a = Analysis(
     ['BalatroModViewer.py'],
     pathex=[],
     binaries=[],
-    datas=[],
+    datas=[('BalatroMultiplayer.zip', '.')],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},

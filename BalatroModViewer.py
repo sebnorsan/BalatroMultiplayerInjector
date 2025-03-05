@@ -3,6 +3,7 @@ import shutil
 import tkinter as tk
 from tkinter import messagebox, filedialog, simpledialog
 import zipfile
+import sys
 
 # -----------------------------
 # 1. Define Paths
@@ -51,14 +52,16 @@ if missing_items:
     inject = messagebox.askyesno("Inject Balatro Multiplayer?", 
                                  "The following required items are missing:\n\n" +
                                  "\n".join(missing_items) +
-                                 "\n\nWould you like to inject Balatro Multiplayer?"
-                                 "\nSelect ZIP File")
+                                 "\n\nWould you like to inject Balatro Multiplayer using the embedded ZIP file?")
     if inject:
-        # Select ZIP File
-        zip_path = filedialog.askopenfilename(title="Select Balatro Multiplayer ZIP File",
-                                              filetypes=[("ZIP files", "*.zip")])
-        if not zip_path:
-            messagebox.showerror("Error", "No ZIP file selected. Proceeding without injection.")
+        # Use the embedded ZIP file bundled with the exe.
+        if getattr(sys, 'frozen', False):
+            base_path = sys._MEIPASS
+        else:
+            base_path = os.path.dirname(os.path.abspath(__file__))
+        zip_path = os.path.join(base_path, "BalatroMultiplayer.zip")
+        if not os.path.exists(zip_path):
+            messagebox.showerror("Error", "Embedded ZIP file not found. Proceeding without injection.")
         else:
             # Extract ZIP
             extract_path = os.path.join(os.path.dirname(zip_path), "Balatro_Temp_Extract")
@@ -78,7 +81,7 @@ if missing_items:
                 # Move version.dll to Game Folder
                 new_version_dll = os.path.join(extract_path, "version.dll")
                 if not os.path.exists(new_version_dll):
-                    messagebox.showerror("Error", "ZIP file is missing version.dll")
+                    messagebox.showerror("Error", "Embedded ZIP is missing version.dll")
                 elif not os.path.exists(game_install_path):
                     messagebox.showerror("Error", "Balatro is not installed. Please install it first.")
                 else:
