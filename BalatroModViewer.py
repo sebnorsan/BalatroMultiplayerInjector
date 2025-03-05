@@ -26,6 +26,74 @@ temp_root = tk.Tk()
 temp_root.withdraw()  # Hide the main window
 
 # -----------------------------
+# Define inject_multiplayer() BEFORE calling it!
+# -----------------------------
+def inject_multiplayer():
+    # Use the embedded ZIP file bundled with the exe.
+    if getattr(sys, 'frozen', False):
+        base_path = sys._MEIPASS
+    else:
+        base_path = os.path.dirname(os.path.abspath(__file__))
+    zip_path = os.path.join(base_path, "BalatroMultiplayer.zip")
+    if not os.path.exists(zip_path):
+        messagebox.showerror("Error", "Embedded ZIP file not found. Proceeding without injection.")
+    else:
+        # Extract ZIP
+        extract_path = os.path.join(os.path.dirname(zip_path), "Balatro_Temp_Extract")
+        try:
+            with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+                zip_ref.extractall(extract_path)
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to extract ZIP: {e}")
+        else:
+            # Check for nested folder (if only one item is extracted)
+            extracted_items = os.listdir(extract_path)
+            if len(extracted_items) == 1:
+                potential_nested_path = os.path.join(extract_path, extracted_items[0])
+                if os.path.isdir(potential_nested_path):
+                    extract_path = potential_nested_path  # Adjust for nested structure
+
+            # Move version.dll to Game Folder
+            new_version_dll = os.path.join(extract_path, "version.dll")
+            if not os.path.exists(new_version_dll):
+                messagebox.showerror("Error", "Embedded ZIP is missing version.dll")
+            elif not os.path.exists(game_install_path):
+                messagebox.showerror("Error", "Balatro is not installed. Please install it first.")
+            else:
+                try:
+                    shutil.copy2(new_version_dll, version_dll_path)
+                except Exception as e:
+                    messagebox.showerror("Error", f"Failed to copy version.dll: {e}")
+
+            # Ensure Mods folder exists
+            if not os.path.exists(mods_path):
+                os.makedirs(mods_path)
+
+            # Remove old mod folders (including possible "-main" variants)
+            old_mod_names = ["BalatroMultiplayer", "SteamModded", "BalatroMultiplayer-main", "smods-main"]
+            for old_mod in old_mod_names:
+                old_mod_path = os.path.join(mods_path, old_mod)
+                if os.path.exists(old_mod_path):
+                    try:
+                        shutil.rmtree(old_mod_path)
+                    except Exception as e:
+                        messagebox.showerror("Error", f"Failed to remove old mod folder '{old_mod}': {e}")
+
+            # Move new mod folders (if they exist in the ZIP)
+            for mod_name in ["BalatroMultiplayer", "SteamModded"]:
+                extracted_mod_path = os.path.join(extract_path, mod_name)
+                if os.path.exists(extracted_mod_path):
+                    try:
+                        shutil.move(extracted_mod_path, os.path.join(mods_path, mod_name))
+                    except Exception as e:
+                        messagebox.showerror("Error", f"Failed to move '{mod_name}': {e}")
+
+            # Clean up extracted files
+            shutil.rmtree(os.path.join(os.path.dirname(zip_path), "Balatro_Temp_Extract"), ignore_errors=True)
+            messagebox.showinfo("Success", "Injection complete. You can now use the mod manager.")
+    refresh_list()
+
+# -----------------------------
 # 2. Check for Missing Files & Folders
 # -----------------------------
 
@@ -54,68 +122,7 @@ if missing_items:
                                  "\n".join(missing_items) +
                                  "\n\nWould you like to inject Balatro Multiplayer using the embedded ZIP file?")
     if inject:
-        # Use the embedded ZIP file bundled with the exe.
-        if getattr(sys, 'frozen', False):
-            base_path = sys._MEIPASS
-        else:
-            base_path = os.path.dirname(os.path.abspath(__file__))
-        zip_path = os.path.join(base_path, "BalatroMultiplayer.zip")
-        if not os.path.exists(zip_path):
-            messagebox.showerror("Error", "Embedded ZIP file not found. Proceeding without injection.")
-        else:
-            # Extract ZIP
-            extract_path = os.path.join(os.path.dirname(zip_path), "Balatro_Temp_Extract")
-            try:
-                with zipfile.ZipFile(zip_path, 'r') as zip_ref:
-                    zip_ref.extractall(extract_path)
-            except Exception as e:
-                messagebox.showerror("Error", f"Failed to extract ZIP: {e}")
-            else:
-                # Check for nested folder (if only one item is extracted)
-                extracted_items = os.listdir(extract_path)
-                if len(extracted_items) == 1:
-                    potential_nested_path = os.path.join(extract_path, extracted_items[0])
-                    if os.path.isdir(potential_nested_path):
-                        extract_path = potential_nested_path  # Adjust for nested structure
-
-                # Move version.dll to Game Folder
-                new_version_dll = os.path.join(extract_path, "version.dll")
-                if not os.path.exists(new_version_dll):
-                    messagebox.showerror("Error", "Embedded ZIP is missing version.dll")
-                elif not os.path.exists(game_install_path):
-                    messagebox.showerror("Error", "Balatro is not installed. Please install it first.")
-                else:
-                    try:
-                        shutil.copy2(new_version_dll, version_dll_path)
-                    except Exception as e:
-                        messagebox.showerror("Error", f"Failed to copy version.dll: {e}")
-
-                # Ensure Mods folder exists
-                if not os.path.exists(mods_path):
-                    os.makedirs(mods_path)
-
-                # Remove old mod folders (including possible "-main" variants)
-                old_mod_names = ["BalatroMultiplayer", "SteamModded", "BalatroMultiplayer-main", "smods-main"]
-                for old_mod in old_mod_names:
-                    old_mod_path = os.path.join(mods_path, old_mod)
-                    if os.path.exists(old_mod_path):
-                        try:
-                            shutil.rmtree(old_mod_path)
-                        except Exception as e:
-                            messagebox.showerror("Error", f"Failed to remove old mod folder '{old_mod}': {e}")
-
-                # Move new mod folders (if they exist in the ZIP)
-                for mod_name in ["BalatroMultiplayer", "SteamModded"]:
-                    extracted_mod_path = os.path.join(extract_path, mod_name)
-                    if os.path.exists(extracted_mod_path):
-                        try:
-                            shutil.move(extracted_mod_path, os.path.join(mods_path, mod_name))
-                        except Exception as e:
-                            messagebox.showerror("Error", f"Failed to move '{mod_name}': {e}")
-
-                # Clean up extracted files
-                shutil.rmtree(os.path.join(os.path.dirname(zip_path), "Balatro_Temp_Extract"), ignore_errors=True)
-                messagebox.showinfo("Success", "Injection complete. You can now use the mod manager.")
+        inject_multiplayer()
     else:
         messagebox.showinfo("Info", "Proceeding to Mod Manager without injection.")
 else:
@@ -128,6 +135,9 @@ temp_root.destroy()
 # -----------------------------
 
 def list_mod_folders(mods_path):
+    if not os.path.exists(mods_path):
+                os.makedirs(mods_path)
+
     return [name for name in os.listdir(mods_path)
             if os.path.isdir(os.path.join(mods_path, name))]
 
@@ -229,17 +239,21 @@ root.title("Mod Folder Manager")
 listbox = tk.Listbox(root, width=50)
 listbox.pack(padx=10, pady=10)
 
-replace_button = tk.Button(root, text="Replace Selected Folder", command=on_replace)
+replace_button = tk.Button(root, text="Replace Selected Mod", command=on_replace)
 replace_button.pack(padx=10, pady=(0,10))
 
-add_button = tk.Button(root, text="Add New Folder", command=on_add)
+add_button = tk.Button(root, text="Add New Mod", command=on_add)
 add_button.pack(padx=10, pady=(0,10))
 
-remove_button = tk.Button(root, text="Remove Selected Folder", command=on_remove)
+remove_button = tk.Button(root, text="Remove Selected Mod", command=on_remove)
 remove_button.pack(padx=10, pady=(0,10))
 
-rename_button = tk.Button(root, text="Rename Selected Folder", command=on_rename)
+rename_button = tk.Button(root, text="Rename Selected Mod", command=on_rename)
 rename_button.pack(padx=10, pady=(0,10))
+
+# Optional: A button to reinject the current multiplayer version manually
+inject_button = tk.Button(root, text="Inject Balatro Multiplayer Version\n1.8.4", command=inject_multiplayer)
+inject_button.pack(padx=10, pady=(40,10))
 
 refresh_list()
 
