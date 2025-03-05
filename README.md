@@ -1,7 +1,2 @@
 Download executable under BalatroMultiplayerInjector/dist
-called BalatroModViewer.exe
-
-Download zip file under BalatroMuliplayerInjector
-called BalatroMultiplayer 1.0.zip
-
-You can look at the pyhton code with the .py file
+called BalatroModViewer.exe and run it. If you dont have multiplayer installed, it will inject multiplayer into your balatro.
